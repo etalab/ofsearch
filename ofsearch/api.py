@@ -65,4 +65,6 @@ class Search(WithDb, Resource):
 class Display(WithDb, Resource):
     @api.marshal_with(organization)
     def get(self, id):
-        return self.db.get(id)
+        doc = self.db.get(id)
+        if not doc:
+            api.abort(404, 'No organization found matching this identifier')

@@ -109,5 +109,7 @@ class DB(object):
 
     def get(self, identifier):
         with self.index.searcher() as s:
-            doc = s.document(numero_de_da=identifier)
-            return doc
+            for key in ('numero_de_da', 'da_siren'):
+                doc = s.document(**{key: identifier})
+                if doc:
+                    return doc
