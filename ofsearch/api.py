@@ -54,6 +54,7 @@ class WithDb(object):
 @api.route('/organizations/')
 @api.expect(parser)
 class Search(WithDb, Resource):
+    @api.doc('search')
     @api.marshal_with(search_results)
     def get(self):
         '''Search organizations on their name, SIREN or declaration number'''
@@ -61,10 +62,14 @@ class Search(WithDb, Resource):
         return self.db.search(args['q'], limit=args['limit'])
 
 
-@api.route('/organization/<id>')
+@api.route('/organizations/<id>')
+@api.param('id', 'A declaration number or a SIREN')
 class Display(WithDb, Resource):
+    @api.doc('display')
+    @api.response(404, 'No organization found matching this SIREN or this declaration number')
     @api.marshal_with(organization)
     def get(self, id):
+        '''Get an organization given its SIREN or its declaration number'''
         doc = self.db.get(id)
         if not doc:
             api.abort(404, 'No organization found matching this identifier')

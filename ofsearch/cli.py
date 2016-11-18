@@ -194,6 +194,7 @@ def serve(config, debug, port):
     '''Launch a development server'''
     app = Flask(__name__)
     # app.wsgi_app = ProxyFix(app.wsgi_app)
+    app.config.SWAGGER_UI_DOC_EXPANSION = 'list'
     api.init_app(app)
     app.extensions['db'] = DB(config)
     app.run(debug=debug, port=port)
