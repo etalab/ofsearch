@@ -1,1 +1,1 @@
-web: gunicorn ofsearch.heroku:app
+web: gunicorn ofsearch.heroku:app -k gevent
