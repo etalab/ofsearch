@@ -193,10 +193,11 @@ def download_with_progress(url):
 def serve(config, debug, port):
     '''Launch a development server'''
     app = Flask(__name__)
+    db = DB(config)
     # app.wsgi_app = ProxyFix(app.wsgi_app)
     app.config.SWAGGER_UI_DOC_EXPANSION = 'list'
     api.init_app(app)
-    app.extensions['db'] = DB(config)
+    db.init_app(app)
     app.run(debug=debug, port=port)
 
 
