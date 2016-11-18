@@ -7,5 +7,7 @@ ADD . /ofsearch/
 
 RUN pip install -e .
 
+EXPOSE 8888
+
 ENTRYPOINT ["ofsearch"]
-CMD ["--help"]
+CMD ["serve"]
