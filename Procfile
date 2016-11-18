@@ -1,1 +1,1 @@
-web: ofsearch serve
+web: gunicorn ofsearch.heroku:app
