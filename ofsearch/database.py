@@ -11,6 +11,9 @@ from whoosh.qparser import MultifieldParser
 log = logging.getLogger(__name__)
 
 
+DEFAULT_INDEX = 'index'
+
+
 def parse_boolean(value):
     '''a failsafe boolean parser'''
     # TODO: need implementation

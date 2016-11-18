@@ -7,13 +7,12 @@ from urllib.request import urlopen, Request, urlretrieve
 
 import click
 
-from .api import api
-from .database import DB
-from .utils import ObjectDict, is_tty
-
 from flask import Flask
 from openpyxl import load_workbook
-# from werkzeug.contrib.fixers import ProxyFix
+
+from .api import api
+from .database import DB, DEFAULT_INDEX
+from .utils import ObjectDict, is_tty
 
 
 log = logging.getLogger(__name__)
@@ -107,7 +106,7 @@ class ClickFormatter(logging.Formatter):
 
 @click.group(context_settings=CONTEXT_SETTINGS)
 @click.option('-v', '--verbose', is_flag=True, help='Verbose output')
-@click.option('-i', '--index', default='index', type=click.Path(writable=True),
+@click.option('-i', '--index', default=DEFAULT_INDEX, type=click.Path(writable=True),
               help='Index storage directory')
 @click.pass_context
 def cli(ctx, **kwargs):
@@ -194,7 +193,6 @@ def serve(config, debug, port):
     '''Launch a development server'''
     app = Flask(__name__)
     db = DB(config)
-    # app.wsgi_app = ProxyFix(app.wsgi_app)
     app.config.SWAGGER_UI_DOC_EXPANSION = 'list'
     api.init_app(app)
     db.init_app(app)
