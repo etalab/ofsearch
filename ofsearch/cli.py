@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
 import logging
+import os
+import sys
+
+from urllib.request import urlopen, Request, urlretrieve
 
 import click
 
 from .api import api
 from .database import DB
-# from .loader import Loader
 from .utils import ObjectDict, is_tty
 
 from flask import Flask
@@ -36,8 +39,11 @@ bgred = color('white', bg='red')
 OK = '✔'
 KO = '✘'
 WARNING = '⚠'
+WAIT = '⏳'
 
-PROGRESS_LABEL = ' '.join((cyan('⏳'), white('Loading organizations')))
+PROGRESS_LABEL = ' '.join((cyan(WAIT), white('Loading organizations')))
+DOWNLOAD_LABEL = ' '.join((cyan(WAIT), white('Downloading dataset')))
+OPTIMIZE_LABEL = ' '.join((cyan(WAIT), white('Optimizing index')))
 
 
 class ClickHandler(logging.Handler):
@@ -121,25 +127,63 @@ def cli(ctx, **kwargs):
 
 
 @cli.command()
-@click.argument('filename', type=click.Path(exists=True))
+@click.argument('filename', type=click.Path())
 @click.pass_obj
 def load(config, filename, lines=None, progress=None, geo=False):
     '''Load data from a official dataset file'''
+    if filename.startswith('http://') or filename.startswith('https://'):
+        filename = download_with_progress(filename)
+    if not os.path.exists(filename):
+        click.echo(' '.join([red(KO), white('Unable to find file {0}'.format(filename))]))
+        sys.exit(1)
     wb = load_workbook(filename, read_only=True)
     sheet = wb.active  # Only the first sheet is relevant
     db = DB(config)
     total = sheet.max_row - 1
-    with db.indexing(), click.progressbar(sheet.rows,
-                                          label=PROGRESS_LABEL,
-                                          length=total) as rows:
-        for i, row in enumerate(rows):
-            if i == 0:
-                # This is the header row
-                fields = [cell.value for cell in row]
-            else:
-                org = dict(zip(fields, [cell.value for cell in row]))
-                db.save_organization(org)
+    with db.indexing():
+        with click.progressbar(sheet.rows, label=PROGRESS_LABEL, length=total) as rows:
+            for i, row in enumerate(rows):
+                if i == 0:
+                    # This is the header row
+                    fields = [cell.value for cell in row]
+                else:
+                    org = dict(zip(fields, [cell.value for cell in row]))
+                    db.save_organization(org)
+        click.echo(OPTIMIZE_LABEL)
     click.echo(green(OK) + white(' {0} items loaded with success'.format(i)))
+
+
+def download_with_progress(url):
+    req = Request(url, method='HEAD')
+    req.add_header('Accept-Encoding', 'identity')
+    response = urlopen(req)
+    content_disposition = response.headers.get('Content-Disposition', '')
+    if 'filename' in content_disposition:
+        # Retrieve the filename and remove the last ".
+        filename = content_disposition.split('filename="')[-1][:-1]
+    else:
+        filename = os.path.basename(url).strip()
+
+    content_length = response.headers.get('Content-Length')
+    if content_length:
+        size = int(content_length)
+    else:
+        size = 1  # Fake for progress bar.
+
+    with click.progressbar(length=size, label=DOWNLOAD_LABEL) as bar:
+        def reporthook(blocknum, blocksize, totalsize):
+            read = blocknum * blocksize
+            if read <= 0:
+                return
+            if read >= totalsize:
+                bar.update(size)
+            else:
+                bar.update(read)
+
+        filename, _ = urlretrieve(url, filename, reporthook=reporthook)
+        bar.update(size)
+    click.echo(' '.join([green(OK), white('Downloaded file'), filename]))
+    return filename
 
 
 @cli.command()
