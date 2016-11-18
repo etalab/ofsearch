@@ -1,6 +1,8 @@
+import csv
 import logging
 import multiprocessing
 import os
+import pkg_resources
 
 from contextlib import contextmanager
 
@@ -85,6 +87,7 @@ class DB(object):
             self.index = index.open_dir(config.index)
         else:
             self.index = index.create_in(config.index, self.schema)
+        self._specialties = None
 
     @contextmanager
     def indexing(self, max_memory=DEFAULT_MAX_MEMORY):
@@ -123,3 +126,11 @@ class DB(object):
                 doc = s.document(**{key: identifier})
                 if doc:
                     return doc
+
+    @property
+    def specialties(self):
+        if not self._specialties:
+            with open(pkg_resources.resource_filename(__name__, 'specialties.csv')) as csvfile:
+                reader = csv.reader(csvfile, delimiter=';', quotechar='"')
+                self._specialties = dict(reader)
+        return self._specialties

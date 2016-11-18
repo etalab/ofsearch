@@ -13,8 +13,6 @@ parser = api.parser()
 parser.add_argument('q', type=str, help='The search query', required=True)
 parser.add_argument('limit', type=int, help='Max number of results', default=10)
 
-
-# TODO: Choose the fields to serialize
 organization = api.model('Organization', {
     'numero_de_da': fields.String,
     'form_total': fields.Integer,
@@ -67,3 +65,11 @@ class Display(WithDb, Resource):
         doc = self.db.get(id)
         if not doc:
             api.abort(404, 'No organization found matching this identifier')
+
+
+@api.route('/specialties/')
+class Specialties(WithDb, Resource):
+    @api.doc('specialties')
+    def get(self):
+        '''Map specialties code to their label'''
+        return self.db.specialties
