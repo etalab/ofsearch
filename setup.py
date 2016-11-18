@@ -100,7 +100,7 @@ setup(
     keywords='formation, tinydb, organismes de formation, search',
     entry_points={
         'console_scripts': [
-            'ofsearch = flask.cli:main',
+            'ofsearch = ofsearch.cli:main',
         ],
     },
     classifiers=[
