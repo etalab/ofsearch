@@ -1,10 +1,11 @@
 from flask import current_app
-from flask_restplus import Api, Resource, fields
+from flask_restplus import Api, Resource, cors, fields
 
 api = Api(
     title='OFSearch API',
     version='1.0',
     description='Search and consult french training organizations',
+    decorators=[cors.crossdomain(origin='*', credentials=True)],
 )
 
 
