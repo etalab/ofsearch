@@ -5,7 +5,9 @@
 __pycache__
 
 # Ignore docker's data
+Dockerfile
 data
+index
 
 # Ignore elasticsearch docker directory
 elasticsearch

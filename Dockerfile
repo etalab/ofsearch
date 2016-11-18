@@ -9,5 +9,9 @@ RUN pip install -e .
 
 EXPOSE 8888
 
-ENTRYPOINT ["ofsearch"]
+ENV OFSEARCH_INDEX /ofsearchindex
+RUN mkdir -p $OFSEARCH_INDEX
+VOLUME $OFSEARCH_INDEX
+
+ENTRYPOINT ["./entrypoint.sh"]
 CMD ["serve"]
