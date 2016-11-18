@@ -42,7 +42,7 @@ WAIT = '⏳'
 
 PROGRESS_LABEL = ' '.join((cyan(WAIT), white('Loading organizations')))
 DOWNLOAD_LABEL = ' '.join((cyan(WAIT), white('Downloading dataset')))
-OPTIMIZE_LABEL = ' '.join((cyan(WAIT), white('Optimizing index')))
+OPTIMIZE_LABEL = ' '.join((cyan(WAIT), white('Optimizing index using {memcpu}Mb on {cpus} cpu(s) (ie. {memory}Mb)')))
 
 
 class ClickHandler(logging.Handler):
@@ -127,8 +127,9 @@ def cli(ctx, **kwargs):
 
 @cli.command()
 @click.argument('filename', type=click.Path())
+@click.option('-m', '--memory', type=int, help="Limit memory usage (in Mb)", default=1024)
 @click.pass_obj
-def load(config, filename, lines=None, progress=None, geo=False):
+def load(config, filename, memory):
     '''Load data from a official dataset file'''
     if filename.startswith('http://') or filename.startswith('https://'):
         filename = download_with_progress(filename)
@@ -139,7 +140,7 @@ def load(config, filename, lines=None, progress=None, geo=False):
     sheet = wb.active  # Only the first sheet is relevant
     db = DB(config)
     total = sheet.max_row - 1
-    with db.indexing():
+    with db.indexing(memory) as infos:
         with click.progressbar(sheet.rows, label=PROGRESS_LABEL, length=total) as rows:
             for i, row in enumerate(rows):
                 if i == 0:
@@ -148,7 +149,7 @@ def load(config, filename, lines=None, progress=None, geo=False):
                 else:
                     org = dict(zip(fields, [cell.value for cell in row]))
                     db.save_organization(org)
-        click.echo(OPTIMIZE_LABEL)
+        click.echo(OPTIMIZE_LABEL.format(**infos))
     click.echo(green(OK) + white(' {0} items loaded with success'.format(i)))
 
 

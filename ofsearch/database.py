@@ -12,6 +12,7 @@ log = logging.getLogger(__name__)
 
 
 DEFAULT_INDEX = 'index'
+DEFAULT_MAX_MEMORY = '1024'
 
 
 def parse_boolean(value):
@@ -86,9 +87,11 @@ class DB(object):
             self.index = index.create_in(config.index, self.schema)
 
     @contextmanager
-    def indexing(self):
-        self.writer = self.index.writer(procs=multiprocessing.cpu_count(), limitmb=128, multisegment=True)
-        yield
+    def indexing(self, max_memory=DEFAULT_MAX_MEMORY):
+        nb_cpu = multiprocessing.cpu_count()
+        memory = int(max_memory / nb_cpu)
+        self.writer = self.index.writer(procs=nb_cpu, limitmb=memory, multisegment=True)
+        yield {'cpus': nb_cpu, 'memcpu': memory, 'memory': max_memory}
         self.writer.commit(optimize=True)
         self.writer = None
 
