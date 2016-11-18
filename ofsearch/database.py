@@ -114,10 +114,7 @@ class DB(object):
                 'query': query,
                 'limit': limit,
                 'total': results.scored_length(),
-                'results': [{
-                    'organization': hit.fields(),
-                    'score': hit.score,
-                } for hit in results],
+                'results': [hit.fields() for hit in results],
             }
 
     def get(self, identifier):

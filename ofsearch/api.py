@@ -31,16 +31,11 @@ organization = api.model('Organization', {
     'adr_ville_postale': fields.String,
 })
 
-org_search_result = api.model('OrganizationSearchResult', {
-    'organization': fields.Nested(organization),
-    'score': fields.Float,
-})
-
 search_results = api.model('SearchResult', {
     'query': fields.String,
     'limit': fields.Integer,
     'total': fields.Integer,
-    'results': fields.List(fields.Nested(org_search_result)),
+    'results': fields.List(fields.Nested(organization)),
 })
 
 
