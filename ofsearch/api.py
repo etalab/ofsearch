@@ -21,21 +21,14 @@ organization = api.model('Organization', {
     'da_siren': fields.String,
     'da_no_etab': fields.String,
     'da_raison_sociale': fields.String,
-    # adr_rue_physique = fields.TEXT(stored=True)
-    # # adr_rue_complement_physique : Complément de l'adresse physique -
-    # adr_rue_complement_physique = fields.TEXT(stored=True)
-    # # adr_code_postal_physique : Code postal de l'adresse physique -
-    # adr_code_postal_physique = fields.ID(stored=True)
-    # # adr_ville_physique : Ville de l'adresse physique -
-    # adr_ville_physique = fields.TEXT(stored=True)
-    # # adr_rue_postale : Voie de l'adresse postale -
-    # adr_rue_postale = fields.TEXT(stored=True)
-    # # adr_rue_complement_postale : Complément de l'adresse postale -
-    # adr_rue_complement_postale = fields.TEXT(stored=True)
-    # # adr_code_postal_postale : Code postal de l'adresse postale -
-    # adr_code_postal_postale = fields.ID(stored=True)
-    # # adr_ville_postale : Ville de l'adresse postale
-    # adr_ville_postale = fields.TEXT(stored=True)
+    'adr_rue_physique': fields.String,
+    'adr_rue_complement_physique': fields.String,
+    'adr_code_postal_physique': fields.String,
+    'adr_ville_physique': fields.String,
+    'adr_rue_postale': fields.String,
+    'adr_rue_complement_postale': fields.String,
+    'adr_code_postal_postale': fields.String,
+    'adr_ville_postale': fields.String,
 })
 
 search_results = api.model('SearchResult', {
