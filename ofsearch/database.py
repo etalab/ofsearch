@@ -5,6 +5,7 @@ import os
 from contextlib import contextmanager
 
 from whoosh import fields, index
+from whoosh.analysis import NgramWordAnalyzer
 from whoosh.qparser import MultifieldParser
 
 log = logging.getLogger(__name__)
@@ -18,7 +19,7 @@ def parse_boolean(value):
 
 def parse_int(value):
     '''a failsafe integer parser'''
-    if not value or value == 'NN':
+    if not value:
         return None
     elif isinstance(value, int):
         return value
@@ -27,6 +28,9 @@ def parse_int(value):
     except Exception as e:
         log.exception('Unable to parse integer "%s": %s', value, e)
         return None
+
+
+ngram_analyzer = NgramWordAnalyzer(minsize=3)
 
 
 class Organization(fields.SchemaClass):
@@ -39,7 +43,7 @@ class Organization(fields.SchemaClass):
     # da_no_etab : Numéro d'établissement de la structure -
     da_no_etab = fields.ID(stored=True)
     # da_raison_sociale : Raison Sociale -
-    da_raison_sociale = fields.TEXT(stored=True)
+    da_raison_sociale = fields.TEXT(stored=True, analyzer=ngram_analyzer, phrase=False)
     # sf : Spécialité de Formation -
     # sf = fields.ID
     # nsf : Nombre de stagiaires formés dans la spécialité -
