@@ -39,8 +39,7 @@ docker pull etalab/ofsearch
 Load data using:
 
 ```shell
-docker run -it etalab/ofsearch \
-    load https://www.data.gouv.fr/fr/datasets/liste-publique-des-organismes-de-formation-l-6351-7-1-du-code-du-travail/
+docker run -it etalab/ofsearch load https://www.data.gouv.fr/s/resources/url/to/file.xlsx
 ```
 
 You can know serve the data with:
