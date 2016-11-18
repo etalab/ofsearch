@@ -2,10 +2,10 @@ from flask import Flask
 from werkzeug.contrib.fixers import ProxyFix
 
 from .api import api
-from .database import DB, DEFAULT_INDEX
+from .database import DB
 from .utils import ObjectDict
 
-config = ObjectDict(verbose=False, index=DEFAULT_INDEX)
+config = ObjectDict(verbose=False, index='.index')
 db = DB(config)
 
 app = Flask(__name__)

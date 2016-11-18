@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+set -eo pipefail
+
+INDEX_DIR='.index'
+MAX_MEMORY=512
+
+if [ -f dataset.txt ]; then
+    DATASET_URL=`cat dataset.txt`
+    if [ ! -f $CACHE_DIR/dataset.txt ] || [ "$DATASET_URL" != "`cat $CACHE_DIR/dataset.txt`" ]; then
+        echo "-----> Indexing data from $DATASET_URL"
+        ofsearch -v --index $INDEX_DIR load -m $MAX_MEMORY "`cat dataset.txt`"
+        cp dataset.txt $CACHE_DIR/
+        echo "-----> Caching index for next deployments"
+        cp -R $INDEX_DIR $CACHE_DIR/$INDEX_DIR
+    else
+        echo "-----> Using cached index for $DATASET_URL"
+        cp -R $CACHE_DIR/$INDEX_DIR $INDEX_DIR
+    fi
+fi
