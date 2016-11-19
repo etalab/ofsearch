@@ -32,7 +32,6 @@ def parse_int(value):
     try:
         return int(value)
     except Exception as e:
-        log.exception('Unable to parse integer "%s": %s', value, e)
         return None
 
 
@@ -50,10 +49,6 @@ class Organization(fields.SchemaClass):
     da_no_etab = fields.ID(stored=True)
     # da_raison_sociale : Raison Sociale -
     da_raison_sociale = fields.TEXT(stored=True, analyzer=ngram_analyzer, phrase=False)
-    # sf : Spécialité de Formation -
-    # sf = fields.ID
-    # nsf : Nombre de stagiaires formés dans la spécialité -
-    # nhsf : Nombre d'heures-stagiaires suivies dans la spécialité -
     # adr_rue_physique : Voie de l'adresse physique -
     adr_rue_physique = fields.TEXT(stored=True)
     # adr_rue_complement_physique : Complément de l'adresse physique -
@@ -72,6 +67,15 @@ class Organization(fields.SchemaClass):
     adr_ville_postale = fields.TEXT(stored=True)
 
 
+schema = Organization()
+# sf : Spécialité de Formation
+schema.add('sf*', fields.NUMERIC(stored=True), glob=True)
+# nsf : Nombre de stagiaires formés dans la spécialité
+schema.add('nsf*', fields.NUMERIC(stored=True), glob=True)
+# nhsf : Nombre d'heures-stagiaires suivies dans la spécialité
+schema.add('nhsf*', fields.NUMERIC(stored=True), glob=True)
+
+
 class DB(object):
     '''
     Data storage abstraction layer
@@ -80,7 +84,7 @@ class DB(object):
 
     def __init__(self, config):
         self.config = config
-        self.schema = Organization()
+        self.schema = schema
         if not os.path.exists(config.index):
             os.mkdir(config.index)
         if index.exists_in(config.index):
@@ -102,22 +106,39 @@ class DB(object):
         if not self.writer:
             log.error('You need to start indexing before saving organizations')
         fields = dict((k, v) for k, v in org.items() if k in self.schema)
+        fields['form_total'] = parse_int(fields['form_total'])
+        for i in range(1, 16):
+            sf_key = 'sf{0}'.format(i)
+            nsf_key = 'nsf{0}'.format(i)
+            nhsf_key = 'nhsf{0}'.format(i)
+            sf = parse_int(fields.get(sf_key))
+            if not sf:
+                del fields[sf_key]
+                del fields[nsf_key]
+                del fields[nhsf_key]
+                continue
+            nsf = parse_int(fields.get(nsf_key))
+            nhsf = parse_int(fields.get(nhsf_key))
+            fields[sf_key] = sf
+            fields[nsf_key] = nsf
+            fields[nhsf_key] = nhsf
         self.writer.add_document(**fields)
 
     def init_app(self, app):
         app.extensions['db'] = self
 
-    def search(self, query, limit=10):
+    def search(self, query, page=1, limit=10):
         qp = MultifieldParser(self.searched_fields, schema=self.index.schema)
         q = qp.parse(query)
 
         with self.index.searcher() as s:
-            results = s.search(q, limit=limit)
+            results = s.search_page(q, page, pagelen=limit)
             return {
                 'query': query,
+                'page': page,
                 'limit': limit,
-                'total': results.scored_length(),
-                'results': [hit.fields() for hit in results],
+                'total': len(results),
+                'results': [self.doc_to_org(hit.fields()) for hit in results],
             }
 
     def get(self, identifier):
@@ -125,7 +146,10 @@ class DB(object):
             for key in ('numero_de_da', 'da_siren'):
                 doc = s.document(**{key: identifier})
                 if doc:
-                    return doc
+                    return self.doc_to_org(doc)
+
+    def doc_to_org(self, doc):
+        return doc
 
     @property
     def specialties(self):

@@ -11,7 +11,8 @@ api = Api(
 
 parser = api.parser()
 parser.add_argument('q', type=str, help='The search query', required=True)
-parser.add_argument('limit', type=int, help='Max number of results', default=10)
+parser.add_argument('page', type=int, help='Page to display', default=1)
+parser.add_argument('limit', type=int, help='Max number of results per page', default=20)
 
 organization = api.model('Organization', {
     'numero_de_da': fields.String,
@@ -31,6 +32,7 @@ organization = api.model('Organization', {
 
 search_results = api.model('SearchResult', {
     'query': fields.String,
+    'page': fields.Integer,
     'limit': fields.Integer,
     'total': fields.Integer,
     'results': fields.List(fields.Nested(organization)),
@@ -51,7 +53,7 @@ class Search(WithDb, Resource):
     def get(self):
         '''Search organizations on their name, SIREN or declaration number'''
         args = parser.parse_args()
-        return self.db.search(args['q'], limit=args['limit'])
+        return self.db.search(args['q'], page=args['page'], limit=args['limit'])
 
 
 @api.route('/organizations/<id>')
