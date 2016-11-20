@@ -18,8 +18,24 @@ ofsearch serve
 
 ## Query
 
+The [full API Documentation][api-doc] is available on [a Heroku deployed instance][api-doc]
+
+### Search
+
 ```shell
-curl -s http://localhost:8888/organizations?q=wit | jq
+curl -s http://localhost:8888/organizations/?q=wit | jq
+```
+
+### Display
+
+```shell
+curl -s http://localhost:8888/organizations/SIREN | jq
+```
+
+### List specialties
+
+```shell
+curl -s http://localhost:8888/specialties/ | jq
 ```
 
 ## Docker
@@ -50,3 +66,4 @@ docker run -it etalab/ofsearch
 
 
 [of-dataset]: https://www.data.gouv.fr/fr/datasets/liste-publique-des-organismes-de-formation-l-6351-7-1-du-code-du-travail/
+[api-doc]: http://ofsearch.herokuapp.com/
