@@ -14,6 +14,12 @@ parser.add_argument('q', type=str, help='The search query', required=True)
 parser.add_argument('page', type=int, help='Page to display', default=1)
 parser.add_argument('limit', type=int, help='Max number of results per page', default=20)
 
+specialty = api.model('Specialty', {
+    'code': fields.Integer,
+    'trainees': fields.Integer,
+    'hours': fields.Integer,
+})
+
 organization = api.model('Organization', {
     'numero_de_da': fields.String,
     'form_total': fields.Integer,
@@ -28,6 +34,7 @@ organization = api.model('Organization', {
     'adr_rue_complement_postale': fields.String,
     'adr_code_postal_postale': fields.String,
     'adr_ville_postale': fields.String,
+    'specialties': fields.List(fields.Nested(specialty))
 })
 
 search_results = api.model('SearchResult', {

@@ -15,6 +15,7 @@ log = logging.getLogger(__name__)
 
 DEFAULT_INDEX = 'index'
 DEFAULT_MAX_MEMORY = '1024'
+MAX_SPECIALTIES = 15
 
 
 def parse_boolean(value):
@@ -107,18 +108,15 @@ class DB(object):
             log.error('You need to start indexing before saving organizations')
         fields = dict((k, v) for k, v in org.items() if k in self.schema)
         fields['form_total'] = parse_int(fields['form_total'])
-        for i in range(1, 16):
+        for i in range(1, MAX_SPECIALTIES + 1):
             sf_key = 'sf{0}'.format(i)
             nsf_key = 'nsf{0}'.format(i)
             nhsf_key = 'nhsf{0}'.format(i)
-            sf = parse_int(fields.get(sf_key))
+            sf = parse_int(fields.pop(sf_key, None))
+            nsf = parse_int(fields.pop(nsf_key, None))
+            nhsf = parse_int(fields.pop(nhsf_key, None))
             if not sf:
-                del fields[sf_key]
-                del fields[nsf_key]
-                del fields[nhsf_key]
                 continue
-            nsf = parse_int(fields.get(nsf_key))
-            nhsf = parse_int(fields.get(nhsf_key))
             fields[sf_key] = sf
             fields[nsf_key] = nsf
             fields[nhsf_key] = nhsf
@@ -149,6 +147,21 @@ class DB(object):
                     return self.doc_to_org(doc)
 
     def doc_to_org(self, doc):
+        doc['specialties'] = []
+        for i in range(1, MAX_SPECIALTIES + 1):
+            sf_key = 'sf{0}'.format(i)
+            nsf_key = 'nsf{0}'.format(i)
+            nhsf_key = 'nhsf{0}'.format(i)
+            sf = doc.pop(sf_key, None)
+            nsf = doc.pop(nsf_key, None)
+            nhsf = doc.pop(nhsf_key, None)
+            if not sf:
+                continue
+            doc['specialties'].append({
+                'code': sf,
+                'trainees': nsf,
+                'hours': nhsf,
+            })
         return doc
 
     @property
